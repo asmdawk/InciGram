@@ -78,5 +78,10 @@ jobs:
           "Source repository: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY`nBuild: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:BUILD_RUN" | Set-Content runtime/SOURCE.txt
           Compress-Archive -Path 'runtime/*' -DestinationPath InciGram-Windows-x64.zip -Force
           Get-FileHash 'runtime/InciGram.exe', 'InciGram-Windows-x64.zip' -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content SHA256SUMS.txt
-          & gh release upload $env:RELEASE_TAG --repo $env:GH_REPO --clobber 'InciGram-Windows-x64.zip' 'SHA256SUMS.txt' 'LICENSE' 'LEGAL'
+          & gh release view $env:RELEASE_TAG --repo $env:GH_REPO
+          if ($LASTEXITCODE -ne 0) {
+            & gh release create $env:RELEASE_TAG --repo $env:GH_REPO --verify-tag --prerelease --title "InciGram $env:RELEASE_TAG — Windows x64 preview" --notes-file incigram/RELEASE-NOTES.md
+            if ($LASTEXITCODE -ne 0) { throw 'Release creation failed.' }
+          }
+          & gh release upload $env:RELEASE_TAG --repo $env:GH_REPO --clobber 'runtime/InciGram.exe' 'InciGram-Windows-x64.zip' 'SHA256SUMS.txt' 'LICENSE' 'LEGAL'
           if ($LASTEXITCODE -ne 0) { throw 'Checked package upload failed.' }

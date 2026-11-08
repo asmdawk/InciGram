@@ -21,7 +21,7 @@ jobs:
           JOB_ID: ${{ inputs.job_id }}
         run: |
           python3 - <<'PY'
-          import os, urllib.request, urllib.error
+          import os, re, urllib.request, urllib.error
           job = os.environ['JOB_ID']
           if not job.isdigit():
               raise SystemExit('Job ID must be numeric.')
@@ -46,7 +46,11 @@ jobs:
               with urllib.request.urlopen(urllib.request.Request(destination, headers=headers), timeout=60) as response:
                   content = response.read().decode('utf-8', errors='replace')
               print('Latest available build log lines:')
-              print('\n'.join(content.splitlines()[-45:]))
+              lines = content.splitlines()
+              notable = [line for line in lines if re.search(r'error|exception|HTTP [45]|failed|denied|release|asset', line, re.I)]
+              print('\n'.join(line[:500] for line in notable[-45:]))
+              print('Last lines:')
+              print('\n'.join(line[:300] for line in lines[-5:]))
           except Exception as error:
               raise SystemExit('Log download failed: ' + type(error).__name__)
           PY
