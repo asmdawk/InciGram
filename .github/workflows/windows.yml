@@ -79,6 +79,8 @@ jobs:
           Get-ChildItem $build -File | Where-Object { $_.Extension -in '.dll', '.rcc' } | Copy-Item -Destination $package
           Copy-Item 'tdesktop\incigram\PRIVACY.md' $package
           Copy-Item 'tdesktop\incigram\README-RU.md' $package
+          Copy-Item 'tdesktop\LICENSE', 'tdesktop\LEGAL' $package
+          "Source: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/tree/$env:GITHUB_SHA" | Set-Content (Join-Path $package 'SOURCE.txt')
           Compress-Archive -Path "$package\*" -DestinationPath InciGram-Windows-x64.zip
           Get-FileHash "$package\InciGram.exe", 'InciGram-Windows-x64.zip' -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content SHA256SUMS.txt
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
