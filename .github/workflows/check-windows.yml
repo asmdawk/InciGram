@@ -52,12 +52,13 @@ jobs:
           if ($info.ProductName -ne 'InciGram Desktop') { throw 'Unexpected executable branding.' }
           $data = Join-Path $env:RUNNER_TEMP 'incigram-startup-check'
           New-Item -ItemType Directory $data -Force | Out-Null
-          $app = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -ArgumentList @('-many', '-workdir', $data) -PassThru
+          $app = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -ArgumentList @('-workdir', $data) -PassThru
           try {
             Start-Sleep -Seconds 15
             $app.Refresh()
             if ($app.HasExited) { throw "Application exited during startup: $($app.ExitCode)" }
             Write-Host "PASS: x64 PE, InciGram branding, process remained alive without an account."
+            Write-Host "Window handle: $($app.MainWindowHandle); title: $($app.MainWindowTitle)"
             $closed = $app.CloseMainWindow()
             if (-not $app.WaitForExit(5000)) { Stop-Process -Id $app.Id -Force }
           } finally {
