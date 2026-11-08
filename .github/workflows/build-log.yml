@@ -39,7 +39,11 @@ jobs:
                   raise SystemExit('Log API returned HTTP ' + str(response.code))
               destination = response.headers['Location']
           try:
-              with urllib.request.urlopen(urllib.request.Request(destination, headers={'Range': 'bytes=-131072'}), timeout=60) as response:
+              with urllib.request.urlopen(urllib.request.Request(destination, method='HEAD'), timeout=30) as response:
+                  size = int(response.headers.get('Content-Length', '0'))
+                  print('Log size:', size, 'bytes; last modified:', response.headers.get('Last-Modified', 'unknown'))
+              headers = {'Range': 'bytes=' + str(max(0, size - 131072)) + '-'} if size else {}
+              with urllib.request.urlopen(urllib.request.Request(destination, headers=headers), timeout=60) as response:
                   content = response.read().decode('utf-8', errors='replace')
               print('Latest available build log lines:')
               print('\n'.join(content.splitlines()[-45:]))
