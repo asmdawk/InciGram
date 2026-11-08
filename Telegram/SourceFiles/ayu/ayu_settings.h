@@ -160,12 +160,12 @@ public:
 private:
 	friend class AyuSettings;
 
-	rpl::variable<bool> _sendReadMessages = true;
-	rpl::variable<bool> _sendReadStories = true;
-	rpl::variable<bool> _sendOnlinePackets = true;
-	rpl::variable<bool> _sendUploadProgress = true;
-	rpl::variable<bool> _sendOfflinePacketAfterOnline = false;
-	rpl::variable<bool> _markReadAfterAction = true;
+	rpl::variable<bool> _sendReadMessages = false;
+	rpl::variable<bool> _sendReadStories = false;
+	rpl::variable<bool> _sendOnlinePackets = false;
+	rpl::variable<bool> _sendUploadProgress = false;
+	rpl::variable<bool> _sendOfflinePacketAfterOnline = true;
+	rpl::variable<bool> _markReadAfterAction = false;
 	rpl::variable<bool> _useScheduledMessages = false;
 	rpl::variable<SendWithoutSoundOption> _sendWithoutSound = SendWithoutSoundOption::Never;
 	rpl::variable<bool> _suggestGhostModeBeforeViewingStory = true;
@@ -633,7 +633,7 @@ private:
 	rpl::variable<bool> _hideFromBlocked = false;
 	rpl::variable<bool> _semiTransparentDeletedMessages = false;
 	rpl::variable<bool> _disableAds = true;
-	rpl::variable<bool> _disableStories = false;
+	rpl::variable<bool> _disableStories = true;
 	rpl::variable<bool> _disableCustomBackgrounds = false;
 	rpl::variable<bool> _showOnlyAddedEmojisAndStickers = false;
 	rpl::variable<bool> _collapseSimilarChannels = true;
@@ -645,7 +645,7 @@ private:
 	rpl::variable<bool> _increaseWebviewHeight = false;
 	rpl::variable<bool> _increaseWebviewWidth = false;
 	rpl::variable<bool> _materialSwitches = true;
-	rpl::variable<bool> _removeMessageTail = false;
+	rpl::variable<bool> _removeMessageTail = true;
 	rpl::variable<bool> _disableNotificationsDelay = false;
 	rpl::variable<bool> _localPremium = false;
 	rpl::variable<bool> _showChannelReactions = true;
@@ -670,19 +670,19 @@ private:
 	rpl::variable<bool> _showEmojiButtonInMessageField = true;
 	rpl::variable<bool> _showMicrophoneButtonInMessageField = true;
 	rpl::variable<bool> _showAutoDeleteButtonInMessageField = true;
-	rpl::variable<bool> _showGiftButtonInMessageField = true;
-	rpl::variable<bool> _showAiEditorButtonInMessageField = true;
+	rpl::variable<bool> _showGiftButtonInMessageField = false;
+	rpl::variable<bool> _showAiEditorButtonInMessageField = false;
 	rpl::variable<bool> _showAttachPopup = true;
 	rpl::variable<bool> _showEmojiPopup = true;
 	rpl::variable<bool> _showMyProfileInDrawer = true;
-	rpl::variable<bool> _showBotsInDrawer = true;
+	rpl::variable<bool> _showBotsInDrawer = false;
 	rpl::variable<bool> _showNewGroupInDrawer = true;
-	rpl::variable<bool> _showNewChannelInDrawer = true;
+	rpl::variable<bool> _showNewChannelInDrawer = false;
 	rpl::variable<bool> _showContactsInDrawer = true;
 	rpl::variable<bool> _showCallsInDrawer = true;
 	rpl::variable<bool> _showSavedMessagesInDrawer = true;
 	rpl::variable<bool> _showLReadToggleInDrawer = false;
-	rpl::variable<bool> _showSReadToggleInDrawer = true;
+	rpl::variable<bool> _showSReadToggleInDrawer = false;
 	rpl::variable<bool> _showNightModeToggleInDrawer = true;
 	rpl::variable<bool> _showGhostToggleInDrawer = true;
 	rpl::variable<bool> _showStreamerToggleInDrawer = false;
@@ -696,7 +696,7 @@ private:
 	rpl::variable<ChannelBottomButton> _channelBottomButton = ChannelBottomButton::DiscussWithFallback;
 	rpl::variable<bool> _quickAdminShortcuts = true;
 	rpl::variable<bool> _disableGreetingSticker = false;
-	rpl::variable<PeerIdDisplay> _showPeerId = PeerIdDisplay::BotApi;
+	rpl::variable<PeerIdDisplay> _showPeerId = PeerIdDisplay::Hidden;
 	rpl::variable<bool> _showMessageSeconds = false;
 	rpl::variable<bool> _showMessageShot = true;
 	rpl::variable<bool> _filterZalgo = false;
@@ -707,7 +707,7 @@ private:
 	rpl::variable<TranslationProvider> _translationProvider = TranslationProvider::Telegram;
 	rpl::variable<bool> _adaptiveCoverColor = true;
 	rpl::variable<bool> _improveLinkPreviews = false;
-	rpl::variable<bool> _crashReporting = true;
+	rpl::variable<bool> _crashReporting = false;
 	rpl::variable<int> _avatarCorners = 23;
 	rpl::variable<bool> _singleCornerRadius = false;
 	rpl::variable<bool> _streamerMode = false;

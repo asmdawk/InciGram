@@ -6,6 +6,9 @@
 
 cmake_minimum_required(VERSION 3.25...3.31)
 
+set(DESKTOP_APP_DISABLE_AUTOUPDATE ON CACHE BOOL "InciGram uses manual updates" FORCE)
+set(DESKTOP_APP_DISABLE_CRASH_REPORTS ON CACHE BOOL "InciGram keeps crash reports local" FORCE)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(cmake/validate_special_target.cmake)
@@ -19,7 +22,7 @@ endif()
 project(Telegram
     LANGUAGES C CXX
     VERSION ${desktop_app_version_cmake}
-    DESCRIPTION "AyuGram Desktop"
+    DESCRIPTION "InciGram Desktop"
     HOMEPAGE_URL "https://ayugram.one"
 )
 

@@ -291,7 +291,9 @@ void ResolveFilterBackupPeers(const std::vector<QString> &peerHints) {
 }
 
 void FilterUtils::importFromLink(const QString &link) {
-	if (link.isEmpty()) {
+	const auto url = QUrl(link);
+	if (!url.isValid() || url.scheme() != u"https"_q
+		|| url.host().isEmpty() || !url.userInfo().isEmpty()) {
 		Ui::Toast::Show(tr::ayu_FiltersToastFailFetch(tr::now));
 		return;
 	}
@@ -343,53 +345,8 @@ void FilterUtils::importFromLink(const QString &link) {
 }
 
 void FilterUtils::publishFilters() {
-	const auto exported = exportFilters();
-
-	auto multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
-
-	QHttpPart contentPart;
-	contentPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"content\""));
-	contentPart.setBody(exported.toUtf8());
-
-	QHttpPart syntaxPart;
-	syntaxPart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"syntax\""));
-	syntaxPart.setBody("json");
-
-	QHttpPart titlePart;
-	titlePart.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"title\""));
-	titlePart.setBody("AyuGram Filters");
-
-	multiPart->append(contentPart);
-	multiPart->append(syntaxPart);
-	multiPart->append(titlePart);
-
-	QNetworkRequest request(QUrl("https://dpaste.com/api/v2/"));
-
-	const auto reply = _manager->post(request, multiPart);
-	multiPart->setParent(reply);
-
-	connect(
-		reply,
-		&QNetworkReply::finished,
-		this,
-		[=]
-		{
-			const auto error = reply->error();
-			const auto location = reply->header(QNetworkRequest::LocationHeader);
-
-			if (error == QNetworkReply::NoError && location.isValid()) {
-				auto url = location.toString();
-				url.append(".txt");
-				QGuiApplication::clipboard()->setText(url);
-
-				Ui::Toast::Show(tr::lng_stickers_copied(tr::now));
-			} else {
-				LOG(("Failed to publish filters to dpaste, error: %1").arg(reply->errorString()));
-
-				Ui::Toast::Show(tr::ayu_FiltersToastFailPublish(tr::now));
-			}
-			reply->deleteLater();
-		});
+	QGuiApplication::clipboard()->setText(exportFilters());
+	Ui::Toast::Show(tr::lng_stickers_copied(tr::now));
 }
 
 void FilterUtils::importFromJson(const QByteArray &json) {

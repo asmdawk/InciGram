@@ -31,14 +31,7 @@ std::unordered_set<ID> default_channels = {
 };
 
 void RCManager::start() {
-	DEBUG_LOG(("RCManager: starting"));
-	_manager = std::make_unique<QNetworkAccessManager>();
-
-	makeRequest();
-
-	_timer = new QTimer(this);
-	connect(_timer, &QTimer::timeout, this, &RCManager::makeRequest);
-	_timer->start(60 * 60 * 1000); // 1 hour
+	LOG(("InciGram: third-party badge service disabled"));
 }
 
 void RCManager::makeRequest() {

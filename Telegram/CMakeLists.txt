@@ -2571,7 +2571,7 @@ else()
         set(bundle_identifier "one.ayugram.AyuGramDesktop")
     endif()
     set(bundle_entitlements "Telegram.entitlements")
-    set(output_name "AyuGram")
+    set(output_name "InciGram")
 endif()
 
 if (CMAKE_GENERATOR STREQUAL Xcode)

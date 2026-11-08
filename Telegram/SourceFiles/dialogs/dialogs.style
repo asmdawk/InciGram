@@ -88,25 +88,25 @@ dialogsTextStyle: defaultTextStyle;
 dialogsDateFont: font(13px);
 dialogsDateSkip: 5px;
 
-dialogsRowHeight: 62px;
+dialogsRowHeight: 76px;
 dialogsFilterPadding: point(7px, 7px);
 dialogsFilterSkip: 4px;
 
 defaultDialogRow: DialogRow {
 	height: dialogsRowHeight;
-	padding: margins(10px, 8px, 10px, 8px);
-	photoSize: 46px;
-	nameLeft: 68px;
-	nameTop: 10px;
-	textLeft: 68px;
-	textTop: 34px;
+	padding: margins(14px, 12px, 14px, 12px);
+	photoSize: 52px;
+	nameLeft: 82px;
+	nameTop: 15px;
+	textLeft: 82px;
+	textTop: 41px;
 }
 communityRequestableListItem: PeerListItem(defaultPeerListItem) {
 	height: dialogsRowHeight;            // == st::defaultDialogRow.height (62px)
-	photoSize: 46px;                     // == st::defaultDialogRow.photoSize
-	photoPosition: point(10px, 8px);     // == st::defaultDialogRow.padding left/top (10,8)
-	namePosition: point(68px, 10px);     // == st::defaultDialogRow.nameLeft / nameTop
-	statusPosition: point(68px, 34px);   // == st::defaultDialogRow.textLeft / textTop
+	photoSize: 52px;                     // == st::defaultDialogRow.photoSize
+	photoPosition: point(14px, 12px);     // == st::defaultDialogRow.padding left/top (10,8)
+	namePosition: point(82px, 15px);     // == st::defaultDialogRow.nameLeft / nameTop
+	statusPosition: point(82px, 41px);   // == st::defaultDialogRow.textLeft / textTop
 }
 communityRequestableList: PeerList(defaultPeerList) {
 	item: communityRequestableListItem;

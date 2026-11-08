@@ -1,0 +1,81 @@
+name: Build InciGram for Windows
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish a prerelease after a successful build
+        type: boolean
+        default: true
+      tag:
+        description: Prerelease tag
+        type: string
+        default: preview-0.1.0
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 360
+    permissions:
+      contents: write
+    env:
+      INCIGRAM_API_ID: ${{ secrets.INCIGRAM_API_ID }}
+      INCIGRAM_API_HASH: ${{ secrets.INCIGRAM_API_HASH }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Check required configuration before preparing dependencies
+        shell: pwsh
+        run: |
+          if ($env:INCIGRAM_API_ID -notmatch '^\d+$' -or $env:INCIGRAM_API_HASH -notmatch '^[a-fA-F0-9]{32}$') {
+            throw 'Add repository Actions secrets INCIGRAM_API_ID and INCIGRAM_API_HASH from your own my.telegram.org application. Do not put values in code, issues or chat.'
+          }
+          if ($env:RELEASE_TAG -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
+            throw 'Invalid release tag.'
+          }
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          submodules: recursive
+          path: tdesktop
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.10'
+      - name: Prepare libraries and compile the native client
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw 'Visual Studio C++ tools not found.' }
+          $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
+          $script = Join-Path $env:GITHUB_WORKSPACE 'tdesktop\incigram\build-windows.ps1'
+          $command = 'call "' + $vcvars + '" -vcvars_ver=14.44 && powershell.exe -NoProfile -File "' + $script + '" -PrepareLibraries'
+          & cmd.exe /d /s /c $command
+          if ($LASTEXITCODE -ne 0) { throw 'Windows build failed; inspect the compiler log.' }
+      - name: Package a portable debug preview
+        shell: pwsh
+        run: |
+          $build = Join-Path $env:GITHUB_WORKSPACE 'tdesktop\out\Debug'
+          $package = Join-Path $env:GITHUB_WORKSPACE 'package'
+          New-Item -ItemType Directory $package -Force | Out-Null
+          Copy-Item (Join-Path $build 'InciGram.exe') $package
+          Get-ChildItem $build -File | Where-Object { $_.Extension -in '.dll', '.rcc' } | Copy-Item -Destination $package
+          Copy-Item 'tdesktop\incigram\PRIVACY.md' $package
+          Copy-Item 'tdesktop\incigram\README-RU.md' $package
+          Compress-Archive -Path "$package\*" -DestinationPath InciGram-Windows-x64.zip
+          Get-FileHash "$package\InciGram.exe", 'InciGram-Windows-x64.zip' -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content SHA256SUMS.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: InciGram-Windows-x64-debug-preview
+          path: |
+            package/InciGram.exe
+            InciGram-Windows-x64.zip
+            SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Publish the compiled files
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: pwsh
+        run: |
+          & gh release create $env:RELEASE_TAG --target $env:GITHUB_SHA --prerelease --title "InciGram $env:RELEASE_TAG — Windows debug preview" --notes-file 'tdesktop/incigram/RELEASE-NOTES.md' 'package/InciGram.exe' 'InciGram-Windows-x64.zip' 'SHA256SUMS.txt'
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed; compiled files remain in Actions artifacts.' }

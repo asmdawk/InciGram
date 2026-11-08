@@ -243,10 +243,10 @@ std::vector<EmbeddedScheme> EmbeddedThemes() {
 	return {
 		EmbeddedScheme{
 			EmbeddedType::Default,
-			qColor("9bd494"),
-			qColor("eaffdc"),
+			qColor("ebf3fc"),
+			qColor("dceaff"),
 			qColor("ffffff"),
-			qColor("eaffdc"),
+			qColor("dceaff"),
 			qColor("ffffff"),
 			name(tr::lng_settings_theme_classic),
 			QString(),

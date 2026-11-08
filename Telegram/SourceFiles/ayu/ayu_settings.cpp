@@ -202,12 +202,12 @@ void to_json(nlohmann::json &j, const GhostModeAccountSettings &s) {
 }
 
 void from_json(const nlohmann::json &j, GhostModeAccountSettings &s) {
-	s._sendReadMessages = j.value("sendReadMessages", true);
-	s._sendReadStories = j.value("sendReadStories", true);
-	s._sendOnlinePackets = j.value("sendOnlinePackets", true);
-	s._sendUploadProgress = j.value("sendUploadProgress", true);
-	s._sendOfflinePacketAfterOnline = j.value("sendOfflinePacketAfterOnline", false);
-	s._markReadAfterAction = j.value("markReadAfterAction", true);
+	s._sendReadMessages = j.value("sendReadMessages", false);
+	s._sendReadStories = j.value("sendReadStories", false);
+	s._sendOnlinePackets = j.value("sendOnlinePackets", false);
+	s._sendUploadProgress = j.value("sendUploadProgress", false);
+	s._sendOfflinePacketAfterOnline = j.value("sendOfflinePacketAfterOnline", true);
+	s._markReadAfterAction = j.value("markReadAfterAction", false);
 	s._useScheduledMessages = j.value("useScheduledMessages", false);
 	const auto sendWithoutSound = j.find("sendWithoutSound");
 	s._sendWithoutSound = (sendWithoutSound == j.end())
@@ -380,12 +380,12 @@ void AyuSettings::load() {
 		if (!p.contains("ghostModeSettings")) {
 			p["ghostModeSettings"] = nlohmann::json::object({
 				{"0", {
-					{"sendReadMessages", p.value("sendReadMessages", true)},
-					{"sendReadStories", p.value("sendReadStories", true)},
-					{"sendOnlinePackets", p.value("sendOnlinePackets", true)},
-					{"sendUploadProgress", p.value("sendUploadProgress", true)},
-					{"sendOfflinePacketAfterOnline", p.value("sendOfflinePacketAfterOnline", false)},
-					{"markReadAfterAction", p.value("markReadAfterAction", true)},
+					{"sendReadMessages", p.value("sendReadMessages", false)},
+					{"sendReadStories", p.value("sendReadStories", false)},
+					{"sendOnlinePackets", p.value("sendOnlinePackets", false)},
+					{"sendUploadProgress", p.value("sendUploadProgress", false)},
+					{"sendOfflinePacketAfterOnline", p.value("sendOfflinePacketAfterOnline", true)},
+					{"markReadAfterAction", p.value("markReadAfterAction", false)},
 					{"useScheduledMessages", p.value("useScheduledMessages", false)},
 					{"sendWithoutSound", p.value("sendWithoutSound", false)}
 				}}
