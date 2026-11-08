@@ -1,7 +1,7 @@
 {
   "name": "InciGram Desktop",
   "display_name": "InciGram",
-  "stage": "source preview; Windows executable not built",
+  "stage": "Windows x64 Debug preview; account-free startup checked",
   "upstream": "https://github.com/AyuGram/AyuGramDesktop",
   "upstream_commit": "0f2a31bb420de98f331990432265b131b8d836b5",
   "license": "GPL-3.0; preserve upstream notices and provide corresponding source",
@@ -48,5 +48,6 @@
     " 95b9cb015fa17baa749c2b396b335906e1596a9e cmake/external/glib/cppgir/expected-lite (95b9cb0)"
   ],
   "security_scope": "Focused source review, not an independent full security audit",
-  "windows_executable": null
+  "windows_executable": "https://github.com/asmdawk/InciGram/releases/download/preview-0.1.0/InciGram.exe",
+  "built_commit": "7608a334ab0b0ebfe1b0ba110a88e0e4e099ea37"
 }

@@ -7,9 +7,9 @@ on:
         type: boolean
         default: true
       tag:
-        description: Prerelease tag
+        description: Optional prerelease tag; generated automatically when empty
         type: string
-        default: preview-0.1.0
+        default: ''
 permissions:
   contents: read
 jobs:
@@ -21,7 +21,7 @@ jobs:
     env:
       INCIGRAM_API_ID: ${{ secrets.API_ID || secrets.INCIGRAM_API_ID }}
       INCIGRAM_API_HASH: ${{ secrets.API_HASH || secrets.INCIGRAM_API_HASH }}
-      RELEASE_TAG: ${{ inputs.tag }}
+      RELEASE_TAG: ${{ inputs.tag || format('preview-{0}-{1}', github.run_number, github.run_attempt) }}
     steps:
       - name: Check required configuration before preparing dependencies
         shell: pwsh
@@ -31,6 +31,25 @@ jobs:
           }
           if ($env:RELEASE_TAG -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
             throw 'Invalid release tag.'
+          }
+      - name: Pin the release tag before the long build
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_SHA: ${{ github.sha }}
+        shell: pwsh
+        run: |
+          $reference = & gh api "repos/$env:GH_REPO/git/ref/tags/$env:RELEASE_TAG" 2>$null
+          $lookupExit = $LASTEXITCODE
+          if ($lookupExit -eq 0) {
+            $tagSha = & gh api "repos/$env:GH_REPO/commits/$env:RELEASE_TAG" --jq .sha
+            if ($LASTEXITCODE -ne 0 -or $tagSha -ne $env:BUILD_SHA) { throw 'Tag belongs to another commit. Choose a new version tag.' }
+          } else {
+            $response = $reference | ConvertFrom-Json
+            if ($response.message -ne 'Not Found') { throw 'Unable to inspect the release tag.' }
+            & gh api --method POST "repos/$env:GH_REPO/git/refs" -f "ref=refs/tags/$env:RELEASE_TAG" -f "sha=$env:BUILD_SHA"
+            if ($LASTEXITCODE -ne 0) { throw 'Unable to pin the source tag before building.' }
           }
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -98,5 +117,10 @@ jobs:
           GH_REPO: ${{ github.repository }}
         shell: pwsh
         run: |
-          & gh release create $env:RELEASE_TAG --target $env:GITHUB_SHA --prerelease --title "InciGram $env:RELEASE_TAG — Windows debug preview" --notes-file 'tdesktop/incigram/RELEASE-NOTES.md' 'package/InciGram.exe' 'InciGram-Windows-x64.zip' 'SHA256SUMS.txt'
+          & gh release view $env:RELEASE_TAG
+          if ($LASTEXITCODE -eq 0) {
+            & gh release upload $env:RELEASE_TAG --clobber 'package/InciGram.exe' 'InciGram-Windows-x64.zip' 'SHA256SUMS.txt'
+          } else {
+            & gh release create $env:RELEASE_TAG --verify-tag --prerelease --title "InciGram $env:RELEASE_TAG — Windows debug preview" --notes-file 'tdesktop/incigram/RELEASE-NOTES.md' 'package/InciGram.exe' 'InciGram-Windows-x64.zip' 'SHA256SUMS.txt'
+          }
           if ($LASTEXITCODE -ne 0) { throw 'Release upload failed; compiled files remain in Actions artifacts.' }

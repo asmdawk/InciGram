@@ -1,5 +1,5 @@
 {
-  "status": "source/resource checks passed; native compilation and Windows runtime unverified",
+  "status": "Source/resource checks, Windows compilation and account-free startup passed; login/messaging and security audit not performed",
   "checks_passed": 89,
   "checks": [
     "git diff --check: main repository and lib_ui",
@@ -100,10 +100,24 @@
     "msgOutDateFg/msgOutBg": 5.72
   },
   "not_run": [
-    "Windows compilation",
-    "PowerShell helper execution",
     "Telegram login / messaging",
-    "Native UI screenshots",
+    "Native UI screenshot inspection",
     "Full security audit"
-  ]
+  ],
+  "windows_build": {
+    "run": "https://github.com/asmdawk/InciGram/actions/runs/42504871372",
+    "compile": "success",
+    "artifact_upload": "success",
+    "initial_release_publication": "failed; recovered by checking/publishing the preserved artifact",
+    "commit": "7608a334ab0b0ebfe1b0ba110a88e0e4e099ea37"
+  },
+  "windows_startup": {
+    "run": "https://github.com/asmdawk/InciGram/actions/runs/42514033029",
+    "status": "success",
+    "scope": [
+      "x64 PE header",
+      "InciGram product name",
+      "process remains alive for 15 seconds without an account"
+    ]
+  }
 }

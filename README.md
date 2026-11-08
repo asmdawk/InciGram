@@ -3,8 +3,11 @@
 A custom Windows-focused fork of [AyuGram Desktop](https://github.com/AyuGram/AyuGramDesktop),
 based on Telegram Desktop. GPL-3.0; upstream attribution and licenses retained.
 
-**Status: source preview. There is no compiled InciGram executable yet.**
-A download is available only after a successful Windows workflow and release upload.
+**Windows x64 preview is available: [download](https://github.com/asmdawk/InciGram/releases/tag/preview-0.1.0).**
+
+The compiled executable passed PE x64, product-name and account-free startup checks
+on a Windows runner. Login, messaging and a full security audit were not performed.
+This is an unsigned Debug preview, not a stable production release.
 
 ## Изменения
 
@@ -30,8 +33,9 @@ A download is available only after a successful Windows workflow and release upl
 4. После успешной сборки файлы появятся в Actions artifacts и в prerelease,
    если включён параметр publish. Готовая сборка не предполагается заранее.
 
-Подготовлен Debug preview для x64. Workflow и Windows-сборка ещё не проверены
-успешным запуском. GitHub Actions для публичных репозиториев использует стандартный
+Подготовлен Debug preview для x64. Windows-сборка и отдельная проверка запуска прошли успешно.
+Тег закрепляется на исходном коммите до компиляции, чтобы изменения main во время долгой сборки
+не мешали публикации. Если поле tag пустое, версия генерируется автоматически. GitHub Actions для публичных репозиториев использует стандартный
 runner; лимиты, доступность и условия GitHub могут меняться. Платные runner не настроены.
 Инструкция ручной сборки — [docs/building-win.md](docs/building-win.md).
 Локальный помощник — [incigram/build-windows.ps1](incigram/build-windows.ps1).
