@@ -1,0 +1,81 @@
+name: Check compiled InciGram on Windows
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful Windows build run ID
+        type: string
+        required: true
+      tag:
+        description: Existing prerelease tag to update
+        type: string
+        default: preview-0.1.0
+permissions:
+  actions: read
+  contents: write
+jobs:
+  check:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          sparse-checkout: |
+            incigram
+          submodules: false
+      - name: Download the compiled artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          BUILD_RUN: ${{ inputs.run_id }}
+        shell: pwsh
+        run: |
+          if ($env:BUILD_RUN -notmatch '^\d+$') { throw 'Invalid run ID.' }
+          & gh run download $env:BUILD_RUN --repo $env:GH_REPO --name InciGram-Windows-x64-debug-preview --dir downloaded
+          if ($LASTEXITCODE -ne 0) { throw 'Artifact download failed.' }
+          $archives = @(Get-ChildItem downloaded -Recurse -Filter InciGram-Windows-x64.zip)
+          if ($archives.Count -ne 1) { throw 'Expected exactly one portable archive.' }
+          Expand-Archive $archives[0].FullName -DestinationPath runtime
+      - name: Verify executable and launch without an account
+        shell: pwsh
+        run: |
+          $exe = (Resolve-Path 'runtime/InciGram.exe').Path
+          $reader = [IO.BinaryReader]::new([IO.File]::OpenRead($exe))
+          try {
+            if ($reader.ReadUInt16() -ne 0x5A4D) { throw 'Not a Windows executable.' }
+            $reader.BaseStream.Position = 0x3C
+            $offset = $reader.ReadInt32()
+            $reader.BaseStream.Position = $offset
+            if ($reader.ReadUInt32() -ne 0x00004550 -or $reader.ReadUInt16() -ne 0x8664) { throw 'Expected a Windows x64 PE image.' }
+          } finally { $reader.Dispose() }
+          $info = [Diagnostics.FileVersionInfo]::GetVersionInfo($exe)
+          if ($info.ProductName -ne 'InciGram Desktop') { throw 'Unexpected executable branding.' }
+          $data = Join-Path $env:RUNNER_TEMP 'incigram-startup-check'
+          New-Item -ItemType Directory $data -Force | Out-Null
+          $app = Start-Process -FilePath $exe -WorkingDirectory (Split-Path $exe) -ArgumentList @('-many', '-workdir', $data) -PassThru
+          try {
+            Start-Sleep -Seconds 15
+            $app.Refresh()
+            if ($app.HasExited) { throw "Application exited during startup: $($app.ExitCode)" }
+            Write-Host "PASS: x64 PE, InciGram branding, process remained alive without an account."
+            $closed = $app.CloseMainWindow()
+            if (-not $app.WaitForExit(5000)) { Stop-Process -Id $app.Id -Force }
+          } finally {
+            $app.Refresh()
+            if (-not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+          }
+      - name: Include licenses and publish the checked portable archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          BUILD_RUN: ${{ inputs.run_id }}
+        shell: pwsh
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') { throw 'Invalid release tag.' }
+          Copy-Item LICENSE, LEGAL runtime
+          "Source repository: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY`nBuild: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:BUILD_RUN" | Set-Content runtime/SOURCE.txt
+          Compress-Archive -Path 'runtime/*' -DestinationPath InciGram-Windows-x64.zip -Force
+          Get-FileHash 'runtime/InciGram.exe', 'InciGram-Windows-x64.zip' -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $(Split-Path $_.Path -Leaf)" } | Set-Content SHA256SUMS.txt
+          & gh release upload $env:RELEASE_TAG --repo $env:GH_REPO --clobber 'InciGram-Windows-x64.zip' 'SHA256SUMS.txt' 'LICENSE' 'LEGAL'
+          if ($LASTEXITCODE -ne 0) { throw 'Checked package upload failed.' }
