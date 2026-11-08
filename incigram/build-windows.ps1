@@ -18,9 +18,13 @@ if (-not (Test-Path (Join-Path $repo 'Telegram/lib_ui/ui/colors.palette'))) {
 $palette = Join-Path $repo 'Telegram/lib_ui/ui/colors.palette'
 if ((Get-FileHash $palette -Algorithm SHA256).Hash -ne 'A5C933231F84231A906D9DF948928FEF52E51233D6E509743F8F987287BBA842') {
     & git -C (Join-Path $repo 'Telegram/lib_ui') apply --check $patch
-    if ($LASTEXITCODE -ne 0) { throw 'Unexpected palette. Review local changes before applying the InciGram patch.' }
-    & git -C (Join-Path $repo 'Telegram/lib_ui') apply $patch
-    if ($LASTEXITCODE -ne 0) { throw 'Unable to apply the InciGram palette patch.' }
+    if ($LASTEXITCODE -eq 0) {
+        & git -C (Join-Path $repo 'Telegram/lib_ui') apply $patch
+        if ($LASTEXITCODE -ne 0) { throw 'Unable to apply the InciGram palette patch.' }
+    } else {
+        & git -C (Join-Path $repo 'Telegram/lib_ui') apply --reverse --check $patch
+        if ($LASTEXITCODE -ne 0) { throw 'Unexpected palette. Review local changes before applying the InciGram patch.' }
+    }
 }
 Push-Location $repo
 try {

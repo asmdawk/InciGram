@@ -23,8 +23,8 @@ A download is available only after a successful Windows workflow and release upl
 ## Сборка Windows
 
 1. Получите собственные API credentials на https://my.telegram.org.
-2. В Settings → Secrets and variables → Actions добавьте `INCIGRAM_API_ID`
-   и `INCIGRAM_API_HASH`. Не публикуйте значения в исходниках, issues или чате.
+2. В Settings → Secrets and variables → Actions добавьте `API_ID`
+   и `API_HASH`. Не публикуйте значения в исходниках, issues или чате.
 3. Actions → Build InciGram for Windows → Run workflow. Доступен только ручной
    запуск; workflow проверяет наличие настроек до тяжёлой подготовки библиотек.
 4. После успешной сборки файлы появятся в Actions artifacts и в prerelease,
