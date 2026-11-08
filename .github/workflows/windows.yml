@@ -39,6 +39,15 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.10'
+      - name: Restore prepared dependencies
+        id: dependencies-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            Libraries
+            ThirdParty
+          key: windows-deps-v1-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: windows-deps-v1-${{ runner.arch }}-
       - name: Prepare libraries and compile the native client
         shell: pwsh
         run: |
@@ -50,6 +59,16 @@ jobs:
           $command = 'call "' + $vcvars + '" -vcvars_ver=14.44 && pwsh.exe -NoProfile -File "' + $script + '" -PrepareLibraries'
           & cmd.exe /d /s /c $command
           if ($LASTEXITCODE -ne 0) { throw 'Windows build failed; inspect the compiler log.' }
+      - name: Save prepared dependencies for subsequent attempts
+        if: ${{ always() && steps.dependencies-cache.outcome == 'success' }}
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            Libraries
+            ThirdParty
+          key: windows-deps-v1-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Package a portable debug preview
         shell: pwsh
         run: |
