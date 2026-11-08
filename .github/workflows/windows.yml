@@ -19,15 +19,15 @@ jobs:
     permissions:
       contents: write
     env:
-      INCIGRAM_API_ID: ${{ secrets.INCIGRAM_API_ID }}
-      INCIGRAM_API_HASH: ${{ secrets.INCIGRAM_API_HASH }}
+      INCIGRAM_API_ID: ${{ secrets.API_ID || secrets.INCIGRAM_API_ID }}
+      INCIGRAM_API_HASH: ${{ secrets.API_HASH || secrets.INCIGRAM_API_HASH }}
       RELEASE_TAG: ${{ inputs.tag }}
     steps:
       - name: Check required configuration before preparing dependencies
         shell: pwsh
         run: |
           if ($env:INCIGRAM_API_ID -notmatch '^\d+$' -or $env:INCIGRAM_API_HASH -notmatch '^[a-fA-F0-9]{32}$') {
-            throw 'Add repository Actions secrets INCIGRAM_API_ID and INCIGRAM_API_HASH from your own my.telegram.org application. Do not put values in code, issues or chat.'
+            throw 'Add repository Actions secrets API_ID and API_HASH from your own my.telegram.org application. Do not put values in code, issues or chat.'
           }
           if ($env:RELEASE_TAG -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$') {
             throw 'Invalid release tag.'
