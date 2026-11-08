@@ -1,0 +1,48 @@
+name: Inspect build log tail
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: Windows build job ID
+        type: string
+        required: true
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read the current log tail
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          JOB_ID: ${{ inputs.job_id }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.request, urllib.error
+          job = os.environ['JOB_ID']
+          if not job.isdigit():
+              raise SystemExit('Job ID must be numeric.')
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+          request = urllib.request.Request(
+              'https://api.github.com/repos/' + os.environ['REPO'] + '/actions/jobs/' + job + '/logs',
+              headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json'})
+          try:
+              urllib.request.build_opener(NoRedirect).open(request, timeout=30)
+              raise SystemExit('Expected a temporary log download redirect.')
+          except urllib.error.HTTPError as response:
+              if response.code != 302:
+                  raise SystemExit('Log API returned HTTP ' + str(response.code))
+              destination = response.headers['Location']
+          try:
+              with urllib.request.urlopen(urllib.request.Request(destination, headers={'Range': 'bytes=-131072'}), timeout=60) as response:
+                  content = response.read().decode('utf-8', errors='replace')
+              print('Latest available build log lines:')
+              print('\n'.join(content.splitlines()[-45:]))
+          except Exception as error:
+              raise SystemExit('Log download failed: ' + type(error).__name__)
+          PY
